@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Skulpt Sandbox</title>
+	<script src="./lib/skulpt.min.js" type="text/javascript"></script>
+	<script src="./lib/skulpt-stdlib.js" type="text/javascript"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+
+const skulpt_output = (text) => {
+	const output_div = document.getElementById("skulpt_output");
+	output_div.innerHTML = output_div.innerHTML + text;
+	console.log(output_div);
+};
+
+const skulpt_read = (filename) => {
+	if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][filename] === undefined) {
+		throw "skulpt file not found: " + filename;
+	}
+	return Sk.builtinFiles["files"][filename];
+};
+
+const skulpt_eval_promise = (program_text, turtle_canvas_div_id) => {
+	Sk.configure({
+		output: skulpt_output,
+		read: skulpt_read,
+	});
+
+	if (!Sk.TurtleGraphics) {
+		Sk.TurtleGraphics = {};
+	}
+	Sk.TurtleGraphics.target = turtle_canvas_div_id;
+
+	return Sk.misceval.asyncToPromise(
+		() =>  { Sk.importMainWithBody("<stdin>", false, program_text, true); }
+	);
+};
+
+const handle_run_button_click = () => {
+	const program_text = document.getElementById("program_text").value;
+	return skulpt_eval_promise(program_text, 'turtle_canvas');
+};
+</script>
+
+<form>
+<textarea id="program_text" cols="80" rows="30">import turtle
+
+t = turtle.Turtle()
+t.forward(100)
+
+print("Hello World") 
+</textarea>
+<br>
+<button type="button" onclick="handle_run_button_click()">Run</button>
+
+<div id="turtle_canvas" />
+<pre id="skulpt_output" />
+
+</body>
+</html>
