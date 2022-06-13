@@ -12,7 +12,6 @@
 const skulpt_output = (text) => {
 	const output_div = document.getElementById("skulpt_output");
 	output_div.innerHTML = output_div.innerHTML + text;
-	console.log(output_div);
 };
 
 const skulpt_read = (filename) => {
@@ -23,6 +22,7 @@ const skulpt_read = (filename) => {
 };
 
 const skulpt_eval_promise = (program_text, turtle_canvas_div_id) => {
+	Sk.pre = "skulpt_output";
 	Sk.configure({
 		output: skulpt_output,
 		read: skulpt_read,
@@ -33,30 +33,38 @@ const skulpt_eval_promise = (program_text, turtle_canvas_div_id) => {
 	}
 	Sk.TurtleGraphics.target = turtle_canvas_div_id;
 
+	const dump_js = false;
+	const can_suspend = true;
+
 	return Sk.misceval.asyncToPromise(
-		() =>  { Sk.importMainWithBody("<stdin>", false, program_text, true); }
+		() =>  { Sk.importMainWithBody("<stdin>", dump_js, program_text, can_suspend); }
 	);
 };
 
 const handle_run_button_click = () => {
 	const program_text = document.getElementById("program_text").value;
-	return skulpt_eval_promise(program_text, 'turtle_canvas');
+	skulpt_eval_promise(program_text, 'turtle_canvas')
+		.then(
+			() => {},
+			(err) => { skulpt_output(err.toString()); }
+		);
 };
 </script>
 
 <form>
-<textarea id="program_text" cols="80" rows="30">import turtle
+<textarea id="program_text" cols="80" rows="20">import turtle
 
 t = turtle.Turtle()
 t.forward(100)
 
-print("Hello World") 
+print("Hello World")
 </textarea>
 <br>
 <button type="button" onclick="handle_run_button_click()">Run</button>
+</form>
 
-<div id="turtle_canvas" />
-<pre id="skulpt_output" />
+<div id="turtle_canvas"></div>
+<pre id="skulpt_output"></pre>
 
 </body>
 </html>
